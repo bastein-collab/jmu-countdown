@@ -2,10 +2,12 @@
   "site_url": "https://bastein-collab.github.io/jmu-countdown/",
   "timezone": "America/New_York",
   "accounts": {
-    "x": "",
+    "x": "CountdownJMU",
     "bluesky": ""
   },
-  "hashtags": ["GoDukes"],
+  "hashtags": [
+    "GoDukes"
+  ],
   "sponsor": null,
   "countdowns": [
     {
