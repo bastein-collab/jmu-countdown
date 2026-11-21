@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Countdown to the 2027 American Conference Football Schedule | JMU</title>
+<meta name="description" content="Live countdown to the release of the 2027 American Conference football schedule, JMU's first as a member. Unofficial fan countdown.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Countdown to the 2027 American Conference Football Schedule">
+<meta property="og:description" content="JMU's first schedule as an American Conference member. Live countdown, updated every second.">
+<meta property="og:url" content="https://bastein-collab.github.io/jmu-countdown/">
+<meta property="og:image" content="https://bastein-collab.github.io/jmu-countdown/latest.png">
+<meta property="og:image:width" content="1600">
+<meta property="og:image:height" content="900">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#450084">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23450084%22/%3E%3Crect x=%2212%22 y=%2214%22 width=%2240%22 height=%224%22 fill=%22%23cbb677%22/%3E%3Ctext x=%2232%22 y=%2252%22 font-family=%22Impact,sans-serif%22 font-size=%2232%22 fill=%22%23cbb677%22 text-anchor=%22middle%22%3E27%3C/text%3E%3C/svg%3E">
+<style>
+  @font-face { font-family: "Anton"; src: url("fonts/Anton-Regular.ttf") format("truetype"); font-display: swap; }
+  @font-face { font-family: "Oswald"; src: url("fonts/Oswald-Variable.ttf") format("truetype"); font-weight: 200 700; font-display: swap; }
+  :root {
+    --purple: #450084;
+    --purple-dark: #2a0052;
+    --gold: #cbb677;
+    --ink: #ffffff;
+    --soft: #e6dcf0;
+    --muted: #c8b9d7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Oswald", "Arial Narrow", Arial, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(180deg, var(--purple) 0%, var(--purple) 35%, var(--purple-dark) 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  main {
+    flex: 1;
+    width: min(1100px, 100%);
+    margin: 0 auto;
+    padding: clamp(28px, 6vw, 64px) clamp(18px, 5vw, 48px) 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .rule { width: 100%; height: 4px; background: var(--gold); margin-bottom: clamp(18px, 3vw, 28px); }
+  .kicker {
+    color: var(--gold);
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    font-size: clamp(14px, 2.2vw, 22px);
+    text-transform: uppercase;
+  }
+  h1 {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1.05;
+    font-size: clamp(26px, 5.4vw, 58px);
+    margin-top: 6px;
+  }
+  .sub { color: var(--soft); font-weight: 400; font-size: clamp(17px, 2.6vw, 26px); margin-top: 10px; }
+
+  .clock {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(8px, 2vw, 22px);
+    width: 100%;
+    margin: clamp(28px, 5vw, 52px) 0 clamp(20px, 3vw, 30px);
+  }
+  .unit {
+    background: rgba(0, 0, 0, 0.18);
+    border-top: 3px solid var(--gold);
+    padding: clamp(10px, 2vw, 20px) 4px clamp(8px, 1.6vw, 16px);
+  }
+  .num {
+    font-family: "Anton", Impact, sans-serif;
+    color: var(--gold);
+    font-size: clamp(46px, 12vw, 140px);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .lab {
+    margin-top: 6px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    font-size: clamp(11px, 1.6vw, 16px);
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .done {
+    display: none;
+    font-family: "Anton", Impact, sans-serif;
+    color: var(--gold);
+    font-size: clamp(54px, 13vw, 150px);
+    line-height: 1;
+    margin: clamp(28px, 5vw, 52px) 0 clamp(16px, 3vw, 26px);
+  }
+  .when {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px 14px;
+    font-size: clamp(16px, 2.4vw, 22px);
+    font-weight: 500;
+  }
+  .badge {
+    font-size: 0.72em;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1.5px solid var(--gold);
+    color: var(--gold);
+  }
+  .badge.official { background: var(--gold); color: var(--purple-dark); }
+  .basis { max-width: 680px; color: var(--muted); font-weight: 300; font-size: clamp(14px, 1.9vw, 17px); line-height: 1.5; margin-top: 14px; }
+
+  .hash {
+    width: 100%;
+    height: 16px;
+    margin: clamp(28px, 4vw, 40px) 0 18px;
+    background:
+      repeating-linear-gradient(90deg, var(--gold) 0 3px, transparent 3px 150px) bottom / 100% 16px no-repeat,
+      repeating-linear-gradient(90deg, rgba(200,185,215,.55) 0 2px, transparent 2px 30px) bottom / 100% 8px no-repeat;
+    opacity: .9;
+  }
+  .follow { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .follow a, .sponsor a {
+    color: var(--ink);
+    text-decoration: none;
+    border: 1.5px solid rgba(203, 182, 119, .7);
+    padding: 9px 16px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    font-size: 15px;
+  }
+  .follow a:hover, .sponsor a:hover { background: rgba(203, 182, 119, .15); }
+  .sponsor { margin-top: 18px; color: var(--muted); font-size: 14px; letter-spacing: .08em; display: none; }
+  footer {
+    background: var(--purple-dark);
+    border-top: 3px solid var(--gold);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 300;
+    line-height: 1.5;
+    padding: 16px clamp(18px, 5vw, 48px);
+    text-align: center;
+  }
+  @media (max-width: 520px) {
+    .clock { grid-template-columns: repeat(2, 1fr); }
+    .num { font-size: 21vw; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="rule" aria-hidden="true"></div>
+  <div class="kicker">Countdown to the</div>
+  <h1 id="headline">2027 American Conference Football Schedule</h1>
+  <p class="sub" id="subhead">JMU's first schedule as an American Conference member</p>
+
+  <div class="clock" id="clock" role="timer" aria-live="off">
+    <div class="unit"><div class="num" id="d">--</div><div class="lab">Days</div></div>
+    <div class="unit"><div class="num" id="h">--</div><div class="lab">Hours</div></div>
+    <div class="unit"><div class="num" id="m">--</div><div class="lab">Minutes</div></div>
+    <div class="unit"><div class="num" id="s">--</div><div class="lab">Seconds</div></div>
+  </div>
+  <div class="done" id="done">Schedule Day</div>
+
+  <div class="when">
+    <span class="badge" id="badge">Projected</span>
+    <span id="whenText">Thu., Feb. 25, 2027 · early afternoon ET</span>
+  </div>
+  <p class="basis" id="basis"></p>
+
+  <div class="hash" aria-hidden="true"></div>
+  <nav class="follow" id="follow"></nav>
+  <div class="sponsor" id="sponsor"></div>
+</main>
+<footer>
+  Unofficial fan countdown. Not affiliated with or endorsed by James Madison University or the American Conference.
+  Projected dates are estimates until the conference announces the official date.
+</footer>
+
+<script>
+(function () {
+  // Fallback if config.json can't be loaded (e.g., page opened as a local file).
+  var FALLBACK = {
+    accounts: { x: "", bluesky: "" },
+    sponsor: null,
+    countdowns: [{
+      id: "schedule-release-2027", enabled: true,
+      target: "2027-02-25T14:00:00-05:00", status: "projected",
+      headline: "2027 American Conference Football Schedule",
+      subhead: "JMU's first schedule as an American Conference member",
+      date_label: "Thu., Feb. 25, 2027",
+      time_label_projected: "early afternoon ET", time_label_official: "2:00 p.m. ET",
+      basis: "Projected from the league's last two releases: Fri., Feb. 28, 2025 and Thu., Feb. 26, 2026, both in the early afternoon ET. This will switch to the official date as soon as the American Conference announces it."
+    }]
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var pad = function (n) { return String(n).padStart(2, "0"); };
+  var timer = null;
+
+  // Calendar date (YYYY-MM-DD) of a moment in New York time.
+  function etDate(ms) {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(ms));
+  }
+
+  function pick(cfg) {
+    var today = etDate(Date.now());
+    var list = (cfg.countdowns || []).filter(function (c) { return c.enabled !== false; });
+    for (var i = 0; i < list.length; i++) {
+      if (etDate(Date.parse(list[i].target)) >= today) return list[i];
+    }
+    return list[list.length - 1] || null;
+  }
+
+  function render(cfg) {
+    var cd = pick(cfg);
+    if (!cd) return;
+    var official = cd.status === "official";
+    $("headline").textContent = cd.headline;
+    $("subhead").textContent = cd.subhead || "";
+    $("badge").textContent = official ? "Official" : "Projected";
+    $("badge").className = "badge" + (official ? " official" : "");
+    $("whenText").textContent = cd.date_label + " · " + (official ? cd.time_label_official : cd.time_label_projected);
+    $("basis").textContent = official ? "" : (cd.basis || "");
+
+    var acc = cfg.accounts || {};
+    var links = [];
+    if (acc.x) links.push(['https://x.com/' + acc.x.replace(/^@/, ''), 'Follow on X']);
+    if (acc.bluesky) links.push(['https://bsky.app/profile/' + acc.bluesky.replace(/^@/, ''), 'Follow on Bluesky']);
+    $("follow").innerHTML = "";
+    links.forEach(function (l) {
+      var a = document.createElement("a");
+      a.href = l[0]; a.textContent = l[1]; a.target = "_blank"; a.rel = "noopener";
+      $("follow").appendChild(a);
+    });
+
+    var sp = cfg.sponsor;
+    if (sp && sp.name) {
+      var box = $("sponsor");
+      box.style.display = "block";
+      box.textContent = "Presented by ";
+      if (sp.url) {
+        var a = document.createElement("a");
+        a.href = sp.url; a.textContent = sp.name; a.target = "_blank"; a.rel = "noopener sponsored";
+        box.appendChild(a);
+      } else {
+        box.appendChild(document.createTextNode(sp.name));
+      }
+    }
+
+    var target = Date.parse(cd.target);
+    function tick() {
+      var diff = target - Date.now();
+      if (diff <= 0) {
+        $("clock").style.display = "none";
+        $("done").style.display = "block";
+        if (timer) clearInterval(timer);
+        return;
+      }
+      var s = Math.floor(diff / 1000);
+      $("d").textContent = Math.floor(s / 86400);
+      $("h").textContent = pad(Math.floor(s % 86400 / 3600));
+      $("m").textContent = pad(Math.floor(s % 3600 / 60));
+      $("s").textContent = pad(s % 60);
+      $("clock").setAttribute("aria-label",
+        Math.floor(s / 86400) + " days, " + Math.floor(s % 86400 / 3600) + " hours, " + Math.floor(s % 3600 / 60) + " minutes remaining");
+    }
+    if (timer) clearInterval(timer);
+    tick();
+    timer = setInterval(tick, 1000);
+  }
+
+  render(FALLBACK);
+  try {
+    fetch("config.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (cfg) { if (cfg) render(cfg); })
+      .catch(function () {});
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

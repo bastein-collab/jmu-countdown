@@ -1,0 +1,40 @@
+{
+  "site_url": "https://bastein-collab.github.io/jmu-countdown/",
+  "timezone": "America/New_York",
+  "accounts": {
+    "x": "",
+    "bluesky": ""
+  },
+  "hashtags": ["GoDukes"],
+  "sponsor": null,
+  "countdowns": [
+    {
+      "id": "schedule-release-2027",
+      "enabled": true,
+      "target": "2027-02-25T14:00:00-05:00",
+      "status": "projected",
+      "headline": "2027 American Conference Football Schedule",
+      "event_phrase": "the American Conference releases its 2027 football schedule",
+      "today_phrase": "The American Conference 2027 football schedule is expected today",
+      "subhead": "JMU's first schedule as an American Conference member",
+      "date_label": "Thu., Feb. 25, 2027",
+      "time_label_projected": "early afternoon ET",
+      "time_label_official": "2:00 p.m. ET",
+      "basis": "Projected from the league's last two releases: Fri., Feb. 28, 2025 and Thu., Feb. 26, 2026, both in the early afternoon ET. This will switch to the official date as soon as the American Conference announces it."
+    },
+    {
+      "id": "kickoff-2027",
+      "enabled": false,
+      "target": "2027-08-28T18:00:00-04:00",
+      "status": "projected",
+      "headline": "JMU 2027 Season Kickoff",
+      "event_phrase": "JMU kicks off its first American Conference season",
+      "today_phrase": "JMU kicks off its first American Conference season today",
+      "subhead": "Season opener vs. Duquesne at Bridgeforth Stadium",
+      "date_label": "Sat., Aug. 28, 2027",
+      "time_label_projected": "time TBA",
+      "time_label_official": "6:00 p.m. ET",
+      "basis": "Placeholder. Turn this on after the 2027 schedule confirms the opener's date and kickoff time."
+    }
+  ]
+}
