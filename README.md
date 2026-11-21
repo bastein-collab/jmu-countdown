@@ -4,7 +4,7 @@ Unofficial fan countdown to the release of the 2027 American Conference football
 
 Two parts:
 
-- **Live page** (`docs/`): a ticking clock hosted free on GitHub Pages at https://bastein-collab.github.io/jmu-countdown/
+- **Live page** (`docs/`): a clock counting down days, hours, minutes and seconds to the hundredth, hosted free on GitHub Pages at https://bastein-collab.github.io/jmu-countdown/. It also links to the official sources: the American Conference, JMU Football, JMU Sports and JMU's university accounts. Those links are in `docs/index.html` under "Official sources".
 - **Bot** (`bot/countdown.py`): every morning at 9:07 a.m. ET it renders a purple-and-gold countdown graphic and posts it to Bluesky and X. GitHub Actions runs it (`.github/workflows/countdown.yml`).
 
 All settings live in one file: **`docs/config.json`**. The page and the bot both read it.

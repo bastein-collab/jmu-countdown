@@ -7,7 +7,7 @@
 <meta name="description" content="Live countdown to the release of the 2027 American Conference football schedule, JMU's first as a member. Unofficial fan countdown.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Countdown to the 2027 American Conference Football Schedule">
-<meta property="og:description" content="JMU's first schedule as an American Conference member. Live countdown, updated every second.">
+<meta property="og:description" content="JMU's first schedule as an American Conference member. Live countdown to the hundredth of a second.">
 <meta property="og:url" content="https://bastein-collab.github.io/jmu-countdown/">
 <meta property="og:image" content="https://bastein-collab.github.io/jmu-countdown/latest.png">
 <meta property="og:image:width" content="1600">
@@ -27,20 +27,21 @@
     --muted: #c8b9d7;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
+  html { background-color: var(--purple-dark); }
   body {
     font-family: "Oswald", "Arial Narrow", Arial, sans-serif;
     color: var(--ink);
-    background: linear-gradient(180deg, var(--purple) 0%, var(--purple) 35%, var(--purple-dark) 100%);
+    background: linear-gradient(180deg, var(--purple) 0%, var(--purple) 35%, var(--purple-dark) 100%) no-repeat;
+    background-color: var(--purple-dark);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
   }
   main {
     flex: 1;
-    width: min(1100px, 100%);
+    width: min(1120px, 100%);
     margin: 0 auto;
-    padding: clamp(28px, 6vw, 64px) clamp(18px, 5vw, 48px) 32px;
+    padding: clamp(28px, 6vw, 64px) clamp(16px, 5vw, 48px) 36px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -64,25 +65,40 @@
   }
   .sub { color: var(--soft); font-weight: 400; font-size: clamp(17px, 2.6vw, 26px); margin-top: 10px; }
 
+  /* ---------- clock ---------- */
+  .clock-label {
+    margin-top: clamp(28px, 5vw, 48px);
+    color: var(--gold);
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: clamp(12px, 1.8vw, 17px);
+  }
   .clock {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: clamp(8px, 2vw, 22px);
+    grid-template-columns: 1fr 1fr 1fr 1.5fr;
+    gap: clamp(8px, 1.8vw, 20px);
     width: 100%;
-    margin: clamp(28px, 5vw, 52px) 0 clamp(20px, 3vw, 30px);
+    margin: 12px 0 clamp(20px, 3vw, 30px);
   }
   .unit {
     background: rgba(0, 0, 0, 0.18);
     border-top: 3px solid var(--gold);
     padding: clamp(10px, 2vw, 20px) 4px clamp(8px, 1.6vw, 16px);
+    min-width: 0;
   }
   .num {
     font-family: "Anton", Impact, sans-serif;
     color: var(--gold);
-    font-size: clamp(46px, 12vw, 140px);
+    font-size: clamp(44px, 11vw, 132px);
     line-height: 1;
-    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
+  /* Anton's digits aren't all the same width, so each digit sits in a fixed-width
+     box. Without this the numbers shimmy sideways as the hundredths change. */
+  .dg { display: inline-block; width: 0.5em; text-align: center; }
+  .pt { display: inline-block; width: 0.24em; text-align: center; }
+  .frac { font-size: 0.6em; }
   .lab {
     margin-top: 6px;
     font-weight: 500;
@@ -97,7 +113,7 @@
     color: var(--gold);
     font-size: clamp(54px, 13vw, 150px);
     line-height: 1;
-    margin: clamp(28px, 5vw, 52px) 0 clamp(16px, 3vw, 26px);
+    margin: 12px 0 clamp(16px, 3vw, 26px);
   }
   .when {
     display: inline-flex;
@@ -123,24 +139,58 @@
   .hash {
     width: 100%;
     height: 16px;
-    margin: clamp(28px, 4vw, 40px) 0 18px;
+    margin: clamp(28px, 4vw, 40px) 0 clamp(22px, 3vw, 30px);
     background:
       repeating-linear-gradient(90deg, var(--gold) 0 3px, transparent 3px 150px) bottom / 100% 16px no-repeat,
       repeating-linear-gradient(90deg, rgba(200,185,215,.55) 0 2px, transparent 2px 30px) bottom / 100% 8px no-repeat;
     opacity: .9;
   }
-  .follow { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-  .follow a, .sponsor a {
+
+  /* ---------- follow + official links ---------- */
+  .follow { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 26px; }
+  .follow:empty { display: none; }
+  .chip, .follow a, .sponsor a {
     color: var(--ink);
     text-decoration: none;
     border: 1.5px solid rgba(203, 182, 119, .7);
-    padding: 9px 16px;
+    padding: 8px 14px;
     font-weight: 500;
-    letter-spacing: .06em;
+    letter-spacing: .04em;
     font-size: 15px;
+    line-height: 1.2;
+    display: inline-block;
   }
-  .follow a:hover, .sponsor a:hover { background: rgba(203, 182, 119, .15); }
-  .sponsor { margin-top: 18px; color: var(--muted); font-size: 14px; letter-spacing: .08em; display: none; }
+  .chip:hover, .follow a:hover, .sponsor a:hover, .chip:focus-visible { background: rgba(203, 182, 119, .16); outline: none; }
+  .sources { width: 100%; }
+  .sources h2 {
+    color: var(--gold);
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: clamp(14px, 2vw, 18px);
+  }
+  .sources .note { color: var(--muted); font-weight: 300; font-size: 14px; margin: 6px 0 18px; }
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    text-align: left;
+  }
+  .group {
+    background: rgba(0, 0, 0, 0.14);
+    border-left: 3px solid var(--gold);
+    padding: 14px 16px 16px;
+  }
+  .group h3 {
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .group .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-size: 14px; padding: 7px 12px; }
+  .sponsor { margin-top: 22px; color: var(--muted); font-size: 14px; letter-spacing: .08em; display: none; }
   footer {
     background: var(--purple-dark);
     border-top: 3px solid var(--gold);
@@ -151,9 +201,12 @@
     padding: 16px clamp(18px, 5vw, 48px);
     text-align: center;
   }
-  @media (max-width: 520px) {
-    .clock { grid-template-columns: repeat(2, 1fr); }
-    .num { font-size: 21vw; }
+  @media (max-width: 720px) {
+    .groups { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .clock { grid-template-columns: 1fr 1fr; }
+    .num { font-size: 19vw; }
   }
 </style>
 </head>
@@ -164,11 +217,12 @@
   <h1 id="headline">2027 American Conference Football Schedule</h1>
   <p class="sub" id="subhead">JMU's first schedule as an American Conference member</p>
 
+  <div class="clock-label" id="clockLabel">Time until projected release</div>
   <div class="clock" id="clock" role="timer" aria-live="off">
-    <div class="unit"><div class="num" id="d">--</div><div class="lab">Days</div></div>
-    <div class="unit"><div class="num" id="h">--</div><div class="lab">Hours</div></div>
-    <div class="unit"><div class="num" id="m">--</div><div class="lab">Minutes</div></div>
-    <div class="unit"><div class="num" id="s">--</div><div class="lab">Seconds</div></div>
+    <div class="unit"><div class="num" id="d"></div><div class="lab">Days</div></div>
+    <div class="unit"><div class="num" id="h"></div><div class="lab">Hours</div></div>
+    <div class="unit"><div class="num" id="m"></div><div class="lab">Minutes</div></div>
+    <div class="unit"><div class="num"><span id="s"></span><span class="frac" id="cs"></span></div><div class="lab">Seconds</div></div>
   </div>
   <div class="done" id="done">Schedule Day</div>
 
@@ -179,7 +233,51 @@
   <p class="basis" id="basis"></p>
 
   <div class="hash" aria-hidden="true"></div>
-  <nav class="follow" id="follow"></nav>
+
+  <nav class="follow" id="follow" aria-label="Follow this countdown"></nav>
+
+  <section class="sources" aria-labelledby="sourcesHead">
+    <h2 id="sourcesHead">Official sources</h2>
+    <p class="note">The schedule will be announced by these accounts. This countdown is not one of them.</p>
+    <div class="groups">
+      <div class="group">
+        <h3>American Conference</h3>
+        <div class="chips">
+          <a class="chip" href="https://theamerican.org/" target="_blank" rel="noopener">TheAmerican.org</a>
+          <a class="chip" href="https://x.com/American_Conf" target="_blank" rel="noopener">X @American_Conf</a>
+        </div>
+      </div>
+      <div class="group">
+        <h3>JMU Football</h3>
+        <div class="chips">
+          <a class="chip" href="https://x.com/JMUFootball" target="_blank" rel="noopener">X @JMUFootball</a>
+          <a class="chip" href="https://www.instagram.com/jmu_football/" target="_blank" rel="noopener">Instagram @jmu_football</a>
+          <a class="chip" href="https://jmusports.com/sports/football" target="_blank" rel="noopener">Football on JMUSports.com</a>
+        </div>
+      </div>
+      <div class="group">
+        <h3>JMU Sports</h3>
+        <div class="chips">
+          <a class="chip" href="https://jmusports.com/" target="_blank" rel="noopener">JMUSports.com</a>
+          <a class="chip" href="https://x.com/jmusports" target="_blank" rel="noopener">X @JMUSports</a>
+          <a class="chip" href="https://www.instagram.com/jmusports/" target="_blank" rel="noopener">Instagram @jmusports</a>
+          <a class="chip" href="https://www.facebook.com/JMUSports" target="_blank" rel="noopener">Facebook</a>
+          <a class="chip" href="https://www.youtube.com/user/jmufanatic" target="_blank" rel="noopener">YouTube</a>
+        </div>
+      </div>
+      <div class="group">
+        <h3>James Madison University</h3>
+        <div class="chips">
+          <a class="chip" href="https://x.com/jmu" target="_blank" rel="noopener">X @JMU</a>
+          <a class="chip" href="https://www.instagram.com/jamesmadisonuniversity/" target="_blank" rel="noopener">Instagram</a>
+          <a class="chip" href="https://www.facebook.com/jamesmadisonuniversity" target="_blank" rel="noopener">Facebook</a>
+          <a class="chip" href="https://www.threads.net/@jamesmadisonuniversity" target="_blank" rel="noopener">Threads</a>
+          <a class="chip" href="https://www.youtube.com/user/DukeDogTV" target="_blank" rel="noopener">YouTube</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <div class="sponsor" id="sponsor"></div>
 </main>
 <footer>
@@ -205,8 +303,26 @@
   };
 
   var $ = function (id) { return document.getElementById(id); };
-  var pad = function (n) { return String(n).padStart(2, "0"); };
-  var timer = null;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var rafId = null, intervalId = null;
+
+  // Write a string into fixed-width digit boxes; only touch boxes whose digit changed.
+  function setDigits(el, str) {
+    if (el.childNodes.length !== str.length) {
+      el.textContent = "";
+      for (var i = 0; i < str.length; i++) {
+        var sp = document.createElement("span");
+        sp.className = str[i] === "." ? "pt" : "dg";
+        sp.textContent = str[i];
+        el.appendChild(sp);
+      }
+      return;
+    }
+    for (var j = 0; j < str.length; j++) {
+      if (el.childNodes[j].textContent !== str[j]) el.childNodes[j].textContent = str[j];
+    }
+  }
+  var two = function (n) { return n < 10 ? "0" + n : String(n); };
 
   // Calendar date (YYYY-MM-DD) of a moment in New York time.
   function etDate(ms) {
@@ -222,12 +338,19 @@
     return list[list.length - 1] || null;
   }
 
+  function stop() {
+    if (rafId) cancelAnimationFrame(rafId);
+    if (intervalId) clearInterval(intervalId);
+    rafId = intervalId = null;
+  }
+
   function render(cfg) {
     var cd = pick(cfg);
     if (!cd) return;
     var official = cd.status === "official";
     $("headline").textContent = cd.headline;
     $("subhead").textContent = cd.subhead || "";
+    $("clockLabel").textContent = official ? "Time until release" : "Time until projected release";
     $("badge").textContent = official ? "Official" : "Projected";
     $("badge").className = "badge" + (official ? " official" : "");
     $("whenText").textContent = cd.date_label + " · " + (official ? cd.time_label_official : cd.time_label_projected);
@@ -235,8 +358,8 @@
 
     var acc = cfg.accounts || {};
     var links = [];
-    if (acc.x) links.push(['https://x.com/' + acc.x.replace(/^@/, ''), 'Follow on X']);
-    if (acc.bluesky) links.push(['https://bsky.app/profile/' + acc.bluesky.replace(/^@/, ''), 'Follow on Bluesky']);
+    if (acc.x) links.push(["https://x.com/" + acc.x.replace(/^@/, ""), "Follow this countdown on X"]);
+    if (acc.bluesky) links.push(["https://bsky.app/profile/" + acc.bluesky.replace(/^@/, ""), "Follow this countdown on Bluesky"]);
     $("follow").innerHTML = "";
     links.forEach(function (l) {
       var a = document.createElement("a");
@@ -244,11 +367,12 @@
       $("follow").appendChild(a);
     });
 
-    var sp = cfg.sponsor;
+    var sp = cfg.sponsor, box = $("sponsor");
+    box.textContent = "";
+    box.style.display = "none";
     if (sp && sp.name) {
-      var box = $("sponsor");
       box.style.display = "block";
-      box.textContent = "Presented by ";
+      box.appendChild(document.createTextNode("Presented by "));
       if (sp.url) {
         var a = document.createElement("a");
         a.href = sp.url; a.textContent = sp.name; a.target = "_blank"; a.rel = "noopener sponsored";
@@ -259,25 +383,44 @@
     }
 
     var target = Date.parse(cd.target);
+    var lastLabelSec = -1;
+
     function tick() {
       var diff = target - Date.now();
       if (diff <= 0) {
         $("clock").style.display = "none";
+        $("clockLabel").style.display = "none";
         $("done").style.display = "block";
-        if (timer) clearInterval(timer);
-        return;
+        stop();
+        return false;
       }
-      var s = Math.floor(diff / 1000);
-      $("d").textContent = Math.floor(s / 86400);
-      $("h").textContent = pad(Math.floor(s % 86400 / 3600));
-      $("m").textContent = pad(Math.floor(s % 3600 / 60));
-      $("s").textContent = pad(s % 60);
-      $("clock").setAttribute("aria-label",
-        Math.floor(s / 86400) + " days, " + Math.floor(s % 86400 / 3600) + " hours, " + Math.floor(s % 3600 / 60) + " minutes remaining");
+      var cs = Math.floor(diff / 10);            // hundredths of a second remaining
+      var days = Math.floor(cs / 8640000);
+      var hrs = Math.floor(cs % 8640000 / 360000);
+      var mins = Math.floor(cs % 360000 / 6000);
+      var secs = Math.floor(cs % 6000 / 100);
+      setDigits($("d"), String(days));
+      setDigits($("h"), two(hrs));
+      setDigits($("m"), two(mins));
+      setDigits($("s"), two(secs));
+      setDigits($("cs"), "." + two(cs % 100));
+      var totalSec = Math.floor(cs / 100);
+      if (totalSec !== lastLabelSec) {           // screen-reader label once a second, not every frame
+        lastLabelSec = totalSec;
+        $("clock").setAttribute("aria-label", days + " days, " + hrs + " hours, " + mins + " minutes, " + secs + " seconds remaining");
+      }
+      return true;
     }
-    if (timer) clearInterval(timer);
-    tick();
-    timer = setInterval(tick, 1000);
+
+    function loop() { if (tick()) rafId = requestAnimationFrame(loop); }
+
+    stop();
+    if (reduceMotion) {        // visitors who ask for less motion get a once-a-second update
+      tick();
+      intervalId = setInterval(tick, 1000);
+    } else {
+      loop();
+    }
   }
 
   render(FALLBACK);
