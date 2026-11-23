@@ -5,9 +5,9 @@ Unofficial fan countdown to the release of the 2027 American Conference football
 Two parts:
 
 - **Live page** (`docs/`): a clock counting down days, hours, minutes and seconds to the hundredth, hosted free on GitHub Pages at https://bastein-collab.github.io/jmu-countdown/. It also links to the official sources: the American Conference, JMU Football, JMU Sports and JMU's university accounts. Those links are in `docs/index.html` under "Official sources".
-- **Bot** (`bot/countdown.py`): every morning at 9:07 a.m. ET it renders a purple-and-gold countdown graphic and posts it to Bluesky and X. GitHub Actions runs it (`.github/workflows/countdown.yml`).
+- **Bot** (`bot/countdown.py`): every morning at 6:00 a.m. ET it renders a purple-and-gold countdown graphic and posts it to Bluesky and X. A GitLab scheduled pipeline runs it (`ci/gitlab-ci.yml`), because GitHub Actions is disabled on this account.
 
-All settings live in one file: **`docs/config.json`**. The page and the bot both read it.
+All settings live in one file: **`docs/config.json`**. The page and the bot both read it. This GitHub repo is the single source of truth: the GitLab run clones it fresh every morning, so any change committed here is what posts the next day.
 
 ## Projected date
 
@@ -22,41 +22,49 @@ Thu., Feb. 25, 2027, early afternoon ET (the clock targets 2:00 p.m. ET). The ba
 
 Commit. The page updates within a minute, and the next morning's post says "Set" in place of "Projected."
 
-## One-time setup
+## How the daily post runs
 
-### 1. GitHub Pages
-Repo **Settings → Pages → Build and deployment**: Source "Deploy from a branch", Branch `main`, folder `/docs`. Save. The page goes live at the address above in a minute or two.
+- **Where:** GitLab project for @CountdownJMU. Its only file is `.gitlab-ci.yml`, a copy of `ci/gitlab-ci.yml` in this repo.
+- **When:** GitLab **Build → Pipeline schedules**, cron `0 6 * * *`, time zone America/New_York. GitLab handles daylight saving time.
+- **Keys:** GitLab **Settings → CI/CD → Variables**, all masked: `BSKY_HANDLE`, `BSKY_APP_PASSWORD`, `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET`. A platform without keys is skipped.
+- **If a run fails:** GitLab emails the schedule's owner. Fix the cause, then **Build → Pipelines → Run pipeline** with `MODE` = `post`. The rerun skips any platform that already posted that day.
+- **Test without posting:** **Run pipeline** with `MODE` = `preview`. The graphic is attached to the job as a download.
 
-### 2. Bluesky (free)
-1. Create the bot account in the Bluesky app.
-2. In that account: **Settings → Privacy and security → App passwords → Add App Password**. Copy it.
-3. In this repo: **Settings → Secrets and variables → Actions → New repository secret**. Add:
-   - `BSKY_HANDLE`: the handle, e.g. `jmucountdown.bsky.social`
-   - `BSKY_APP_PASSWORD`: the app password from step 2
-4. Put the live page link in the Bluesky bio, and say it's an unofficial fan account.
+### Double-post guard
 
-### 3. X (pay per post)
-1. Create the bot account on X. Say "unofficial fan account" in the name or bio, and put the live page link in the bio.
-2. In the X Developer Console, sign in as the bot account, create an app, and set its user authentication permissions to **Read and write**.
-3. Generate the app's **API Key and Secret**, then its **Access Token and Secret**. Generate the access token *after* setting Read and write, or it will be read-only.
-4. Buy a small amount of credits and set a spending cap. One plain post a day costs about $0.015, so $5 covers the whole countdown with room to spare.
-5. Add four repository secrets: `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET`.
-6. If X shows an **Automation** option under the bot's account information, link it to your personal account so the bot carries X's "Automated" label.
+Each run starts from a fresh copy, so it checks the platforms themselves:
 
-A platform without secrets is skipped, so you can launch on Bluesky first and add X later.
+- **Bluesky:** skips if the account already has a post that day starting with that day's countdown line.
+- **X:** X refuses a post whose text matches an earlier one, and the bot treats that refusal as "already posted."
 
-### 4. Test
-**Actions → Daily countdown post → Run workflow**:
-- `mode: preview` renders the graphic and prints both posts without posting. Download the graphic from the run's summary page.
-- `mode: post` posts for real. A second run the same day won't double-post unless you tick `force`.
+Set `FORCE` to `true` on a manual run to post anyway.
 
-After that it runs every morning on its own.
+### Posts
+
+- **X:** countdown text, the live-clock link (`Live clock: bastein-collab.github.io/jmu-countdown`), #GoDukes, and the graphic with alt text.
+- **Bluesky:** the same, except the words "Watch the live clock" carry the link, so no web address shows.
+
+### Link preview
+
+`docs/latest.png` is the picture that X, Bluesky and texts show when someone shares the page link. It has no day count, so it never goes stale. The bot writes each day's graphic to `out/today.png` and leaves `docs/latest.png` alone.
+
+### GitHub Actions (backup only)
+
+`.github/workflows/countdown.yml` has no schedule, so it can never double-post if GitHub turns Actions back on. It can still be run by hand from the Actions tab. Its secrets are set in **Settings → Secrets and variables → Actions**.
+
+## One-time setup (done)
+
+1. **GitHub Pages:** Settings → Pages → Deploy from a branch, `main`, `/docs`.
+2. **Bluesky:** account @countdownjmu.bsky.social, email confirmed, app password in the GitLab variables.
+3. **X:** account @CountdownJMU, labeled "Fan account", name starting with "Fan Account". Developer app "CountdownJMU Daily Post" with Read and write. Keys in the GitLab variables. Spend cap $10 per billing cycle, auto recharge off.
+4. **GitLab:** project with `.gitlab-ci.yml`, the six variables, and the 6:00 a.m. ET schedule.
 
 ## Costs
 
-- GitHub (Actions + Pages): free for a public repo.
+- GitHub Pages: free.
+- GitLab: free tier, 400 compute minutes a month. Each run takes about 1.5 minutes.
 - Bluesky: free.
-- X: about $0.015 per post with no link. A post containing a link costs $0.20, which is why X posts leave the link out and the bio carries it.
+- X: about $0.20 per post with the link, plus about $0.005 for alt text. Roughly $6.40 a month. The X spend cap is $10 per billing cycle. Top up credits in the X developer console before the balance runs out.
 
 ## Sponsor line
 
