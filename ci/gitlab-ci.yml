@@ -1,0 +1,59 @@
+# GitLab timer for the JMU countdown bot.
+# This file is the whole GitLab project. It holds no code: each run clones the
+# GitHub repo (bastein-collab/jmu-countdown), which stays the single source of
+# truth for the bot and for docs/config.json.
+#
+# Schedule: CI/CD > Schedules, "0 6 * * *", time zone America/New_York.
+# Keys: Settings > CI/CD > Variables (masked): BSKY_HANDLE, BSKY_APP_PASSWORD,
+#       X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET.
+# Manual run: Build > Pipelines > Run pipeline. MODE "preview" renders only;
+# "post" posts for real. A same-day rerun never double-posts unless FORCE is "true".
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+variables:
+  MODE:
+    value: "preview"
+    options: ["preview", "post"]
+    description: "preview = render only. post = post for real. Scheduled runs always post."
+  ONLY:
+    value: "both"
+    options: ["both", "bluesky", "x"]
+    description: "Post to both platforms, or just one."
+  FORCE:
+    value: "false"
+    options: ["false", "true"]
+    description: "true = post even if today's post already went out."
+
+countdown:
+  image: python:3.12
+  timeout: 10 minutes
+  # One automatic rerun for brief outages (GitHub, PyPI, runners). Safe because
+  # the bot never double-posts the same day.
+  retry:
+    max: 1
+    when: [runner_system_failure, stuck_or_timeout_failure, script_failure, api_failure, scheduler_failure, unknown_failure]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      variables:
+        MODE: "post"
+    - if: $CI_PIPELINE_SOURCE == "web"
+  script:
+    - git clone --depth 1 https://github.com/bastein-collab/jmu-countdown.git src
+    - cd src
+    - git log -1 --format="Code version %h, %cd"
+    - pip install --quiet --disable-pip-version-check -r requirements.txt
+    - ARGS=""
+    - if [ "$MODE" != "post" ]; then ARGS="$ARGS --dry-run"; fi
+    - if [ "$ONLY" != "both" ]; then ARGS="$ARGS --only $ONLY"; fi
+    - if [ "$FORCE" = "true" ]; then ARGS="$ARGS --force"; fi
+    - python bot/countdown.py $ARGS
+  artifacts:
+    when: always
+    name: countdown-graphic
+    paths:
+      - src/out/today.png
+    expire_in: 7 days
