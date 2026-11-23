@@ -1,11 +1,11 @@
-name: Daily countdown post
+name: Daily countdown post (backup, manual only)
+
+# The daily 6:00 a.m. ET post now runs from GitLab (see ci/gitlab-ci.yml),
+# because GitHub Actions is disabled on this account. This workflow has no
+# schedule, so it can never double-post if GitHub turns Actions back on.
+# It stays as a manual backup: Actions > this workflow > Run workflow.
 
 on:
-  schedule:
-    # 9:07 a.m. Eastern = 14:07 UTC. The countdown ends Feb. 25, before daylight saving
-    # starts, so Eastern stays UTC-5 for the whole run. Set off the top of the hour
-    # because GitHub delays :00 jobs the most.
-    - cron: "7 14 * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -24,7 +24,7 @@ on:
         default: false
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: countdown
@@ -51,7 +51,7 @@ jobs:
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-          MODE: ${{ github.event_name == 'schedule' && 'post' || inputs.mode }}
+          MODE: ${{ inputs.mode }}
           ONLY: ${{ inputs.only }}
           FORCE: ${{ inputs.force }}
         run: |
@@ -66,18 +66,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: countdown-graphic
-          path: docs/latest.png
+          path: out/today.png
           retention-days: 7
-
-      # Saves which posts went out (so a re-run never double-posts) and today's
-      # graphic (the live page's link preview). The daily commit also keeps the
-      # repo active, which stops GitHub from pausing the schedule after 60 quiet days.
-      - name: Save state and today's graphic
-        if: always()
-        run: |
-          git config user.name "countdown-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state.json docs/latest.png 2>/dev/null || true
-          if git diff --cached --quiet; then echo "Nothing to save."; exit 0; fi
-          git commit -m "Countdown $(TZ=America/New_York date +%F)"
-          git push
