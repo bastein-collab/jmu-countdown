@@ -10,10 +10,19 @@ Usage:
   python bot/countdown.py --only bluesky   # post to one platform
   python bot/countdown.py --force          # post even if today's post already went out
 
-Credentials come from environment variables (GitHub Actions secrets):
+Runs every morning at 6:00 a.m. ET from a GitLab scheduled pipeline, which
+clones this GitHub repo fresh each run. This repo stays the single source of
+truth for the code and for docs/config.json.
+
+Credentials come from environment variables (GitLab CI/CD variables):
   BSKY_HANDLE, BSKY_APP_PASSWORD
   X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET
 A platform with missing credentials is skipped, so Bluesky can launch before X.
+
+Double-post guard: the run starts from a fresh copy each day, so it checks the
+platforms themselves. Bluesky: skip if the account already has a post today
+with today's countdown line. X: X refuses a post whose text matches an earlier
+one, and the bot treats that refusal as "already posted".
 """
 
 from __future__ import annotations
@@ -23,6 +32,7 @@ import io
 import json
 import os
 import sys
+import time
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -32,7 +42,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "docs" / "config.json"
 STATE_PATH = ROOT / "state.json"
-LATEST_PNG = ROOT / "docs" / "latest.png"
+TODAY_PNG = ROOT / "out" / "today.png"   # docs/latest.png is the page's fixed link preview; the bot leaves it alone
 FONT_DIR = ROOT / "fonts"
 
 W, H = 1600, 900
@@ -42,7 +52,10 @@ GOLD = (203, 182, 119)      # JMU gold #CBB677
 WHITE = (255, 255, 255)
 
 X_MAX = 280
+X_URL_WEIGHT = 23           # X counts any link as 23 characters
 BSKY_MAX = 300
+BSKY_LINK_LABEL = "Watch the live clock"
+RETRY_WAITS = (30, 90)      # seconds between attempts after a failure; safe because of the double-post guard
 
 
 # ---------------------------------------------------------------- config / dates
@@ -113,14 +126,25 @@ def short_url(url: str) -> str:
     return url.replace("https://", "").replace("http://", "").rstrip("/")
 
 
+def x_weighted_len(text: str, link: str) -> int:
+    """Length as X counts it: the link counts as 23 characters."""
+    if link and link in text:
+        return len(text) - len(link) + X_URL_WEIGHT
+    return len(text)
+
+
 def x_text(cfg: dict, cd: dict, days: int) -> str:
-    """X post. No link: X bills $0.20 for a post with a URL vs $0.015 without.
-    The live-clock link lives in the X bio instead."""
+    """X post, with the live-clock link (Brett's call, 2026-11-23). X bills about
+    $0.20 for a post with a link vs $0.015 without; the spend cap is $10 a month."""
+    url = cfg.get("site_url", "")
+    link = short_url(url) if url else ""
     for include_subhead in (True, False):
         parts = body_parts(cfg, cd, days, include_subhead)
+        if link:
+            parts.append(f"Live clock: {link}")
         tags = " ".join(f"#{t}" for t in hashtags(cfg))
         text = "\n\n".join(parts + ([tags] if tags else []))
-        if len(text) <= X_MAX:
+        if x_weighted_len(text, link) <= X_MAX:
             return text
     return text[:X_MAX]
 
@@ -134,8 +158,9 @@ def bsky_segments(cfg: dict, cd: dict, days: int) -> list[tuple[str, str, str | 
             ("text", "\n\n".join(body_parts(cfg, cd, days, include_subhead)), None)
         ]
         if url:
-            segs.append(("text", "\n\nLive clock: ", None))
-            segs.append(("link", short_url(url), url))
+            # The words carry the link, so no web address shows in the post.
+            segs.append(("text", "\n\n", None))
+            segs.append(("link", BSKY_LINK_LABEL, url))
         tags = hashtags(cfg)
         if tags:
             segs.append(("text", "\n\n", None))
@@ -301,11 +326,44 @@ def x_ready() -> bool:
     return all(os.getenv(k) for k in ("X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_TOKEN_SECRET"))
 
 
-def post_bluesky(segs, png: bytes, alt: str) -> str:
+class AlreadyPosted(Exception):
+    """The platform already has today's post."""
+
+
+def bsky_posted_today(client, handle: str, lead: str, today: date, tz: ZoneInfo) -> str | None:
+    """Return the URI of today's countdown post if the account already made it."""
+    feed = client.get_author_feed(actor=handle, limit=15)
+    for item in feed.feed:
+        post = item.post
+        if post.author.handle != handle:
+            continue  # a repost of someone else
+        rec = post.record
+        text = (rec.get("text") if isinstance(rec, dict) else getattr(rec, "text", "")) or ""
+        stamp = (rec.get("createdAt") if isinstance(rec, dict) else getattr(rec, "created_at", "")) or ""
+        if not stamp:
+            continue
+        created = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+        if created.astimezone(tz).date() == today and text.startswith(lead):
+            return post.uri
+    return None
+
+
+def post_bluesky(segs, png: bytes, alt: str, lead: str, today: date, tz: ZoneInfo,
+                 force: bool = False) -> str:
     from atproto import Client, client_utils, models
 
+    handle = os.environ["BSKY_HANDLE"]
     client = Client()
-    client.login(os.environ["BSKY_HANDLE"], os.environ["BSKY_APP_PASSWORD"])
+    client.login(handle, os.environ["BSKY_APP_PASSWORD"])
+    if not force:
+        try:
+            existing = bsky_posted_today(client, handle, lead, today, tz)
+        except Exception as e:  # noqa: BLE001
+            # A failed check should not cost the day's post.
+            print(f"  warning: could not read the Bluesky feed to check for today's post ({e})")
+            existing = None
+        if existing:
+            raise AlreadyPosted(existing)
     tb = client_utils.TextBuilder()
     for kind, txt, target in segs:
         if kind == "link":
@@ -364,6 +422,8 @@ def post_x(text: str, png: bytes, alt: str) -> str:
         json={"text": text, "media": {"media_ids": [media_id]}},
         timeout=30,
     )
+    if r.status_code == 403 and "duplicate" in r.text.lower():
+        raise AlreadyPosted("X refused a duplicate of today's post")
     _x_check(r, "post")
     return r.json()["data"]["id"]
 
@@ -376,7 +436,7 @@ def main() -> int:
     ap.add_argument("--date", help="pretend today is YYYY-MM-DD (testing)")
     ap.add_argument("--only", choices=["bluesky", "x"], help="post to one platform only")
     ap.add_argument("--force", action="store_true", help="post even if already posted today")
-    ap.add_argument("--out", help="write the image here instead of docs/latest.png")
+    ap.add_argument("--out", help="write the image here instead of out/today.png")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -389,7 +449,7 @@ def main() -> int:
 
     days = (target.date() - today).days
     png = render_image(cd, days)
-    out = Path(args.out) if args.out else LATEST_PNG
+    out = Path(args.out) if args.out else TODAY_PNG
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(png)
 
@@ -398,7 +458,7 @@ def main() -> int:
     alt = alt_text(cd, days)
 
     print(f"{today} | countdown: {cd['id']} | days: {days} | image: {out}")
-    print(f"--- X ({len(xt)}/{X_MAX}) ---\n{xt}")
+    print(f"--- X ({x_weighted_len(xt, short_url(cfg.get('site_url', '')))}/{X_MAX} as X counts it) ---\n{xt}")
     print(f"--- Bluesky ({len(plain(segs))}/{BSKY_MAX}) ---\n{plain(segs)}")
     print(f"--- Alt text ---\n{alt}")
 
@@ -419,7 +479,22 @@ def main() -> int:
             print(f"{name}: already posted today, skipped.")
             continue
         try:
-            ref = post_bluesky(segs, png, alt) if name == "bluesky" else post_x(xt, png, alt)
+            ref = None
+            for attempt in range(len(RETRY_WAITS) + 1):
+                try:
+                    if name == "bluesky":
+                        ref = post_bluesky(segs, png, alt, lead_line(cd, days), today, tz, args.force)
+                    else:
+                        ref = post_x(xt, png, alt)
+                    break
+                except AlreadyPosted:
+                    raise
+                except Exception as e:  # noqa: BLE001
+                    if attempt == len(RETRY_WAITS):
+                        raise
+                    wait = RETRY_WAITS[attempt]
+                    print(f"{name}: attempt {attempt + 1} failed ({e}); retrying in {wait}s")
+                    time.sleep(wait)
             state.setdefault("posted", {})[name] = {
                 "date": today.isoformat(),
                 "countdown": cd["id"],
@@ -428,6 +503,8 @@ def main() -> int:
             }
             save_state(state)
             print(f"{name}: posted ({ref})")
+        except AlreadyPosted as e:
+            print(f"{name}: already posted today, skipped ({e}).")
         except Exception as e:  # noqa: BLE001
             failures += 1
             print(f"{name}: FAILED: {e}", file=sys.stderr)
